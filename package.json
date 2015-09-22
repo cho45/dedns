@@ -1,0 +1,15 @@
+{
+  "name": "dedns",
+  "version": "1.0.0",
+  "description": "DNS for Development",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bunyan": "*",
+    "native-dns": "*"
+  },
+  "author": "cho45 <cho45@lowreal.net> (http://www.lowreal.net/)",
+  "license": "MIT"
+}
