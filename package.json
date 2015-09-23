@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "bunyan": "*",
+    "commander": "*",
     "native-dns": "*"
   },
   "author": "cho45 <cho45@lowreal.net> (http://www.lowreal.net/)",

@@ -4,6 +4,13 @@ var dns = require('native-dns');
 var fs = require('fs');
 var log = require('bunyan').createLogger({ name : 'dedns', level: process.env.LOG_LEVEL });
 
+var program = require('commander');
+
+program.
+	version('0.0.1').
+	usage('[options] [files...] (require sudo)').
+	parse(process.argv);
+
 function parseHosts(hosts) {
 	var map = {};
 	var lines = hosts.split(/\n/);
@@ -16,7 +23,25 @@ function parseHosts(hosts) {
 	return map;
 }
 
-var answers = parseHosts(fs.readFileSync('/etc/hosts', 'utf-8'));
+function myIpAddress() {
+	var interfaces = require('os').networkInterfaces();
+	for (var key in interfaces) if (interfaces.hasOwnProperty(key)) {
+		var addresses = interfaces[key];
+		for (var i = 0, it; (it = addresses[i]); i++) {
+			if (it.internal) continue;
+			if (it.family === 'IPv6') continue;
+			console.log(it.address);
+		}
+	}
+}
+
+var files = program.args;
+if (!files.length) files.push('/etc/hosts');
+var answers = [];
+for (var i = 0, len = files.length; i < len; i++) {
+	log.info('Use', files[i]);
+	answers = answers.concat(parseHosts(fs.readFileSync(files[i], 'utf-8')));
+}
 var server = dns.createServer();
 
 server.on('request', function (req, res) {
@@ -55,6 +80,17 @@ server.on('request', function (req, res) {
 		});
 
 		r.send();
+	}
+
+	// ip address host name
+	if (req.question[0].name.match(/(\d+\.\d+\.\d+\.\d).qrz/)) {
+		res.answer.push(dns.A({
+			name: req.question[0].name,
+			address: RegExp.$1,
+			ttl: 60
+		}));
+		res.send();
+		return;
 	}
 
 	var answer = answers[req.question[0].name];
